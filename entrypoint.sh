@@ -2,8 +2,7 @@
 set -e
 
 echo "🟦 Web to APK Action: Start"
-
-echo "Java version:"
+echo "Java version:" 
 java -version
 
 APP_NAME="${INPUT_APP_NAME}"
@@ -26,8 +25,26 @@ npx cap add android
 echo "🔗 Syncing Web assets..."
 npx cap sync
 
-echo "🔨 Building APK..."
+# **Patch Android project to force Java 17 compatibility**
+echo "🛠️ Patching Android build.gradle for Java 17 compatibility..."
+# 进入 android 目录
 cd android
+# backup original build.gradle
+cp app/build.gradle app/build.gradle.bak || true
+
+# 用 sed 修改 build.gradle compileOptions 中的 sourceCompatibility & targetCompatibility
+# 注意：仅在存在 compileOptions 的情况下替换
+sed -i "/compileOptions {/,/}/ { 
+  s/sourceCompatibility .*/sourceCompatibility JavaVersion.VERSION_17/
+  s/targetCompatibility .*/targetCompatibility JavaVersion.VERSION_17/
+}" app/build.gradle
+
+# 如果 kotlinOptions 存在，也设 jvmTarget = "17"
+sed -i "/kotlinOptions {/,/}/ { 
+  s/jvmTarget = .*/jvmTarget = \"17\"/
+}" app/build.gradle || true
+
+echo "🔨 Building APK..."
 ./gradlew assembleRelease
 
 APK_PATH="app/build/outputs/apk/release/app-release.apk"
