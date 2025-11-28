@@ -2,10 +2,14 @@ FROM ubuntu:22.04
 
 # 基础工具
 RUN apt-get update && apt-get install -y \
-  curl wget unzip git nodejs npm openjdk-17-jdk \
+  curl wget unzip git openjdk-17-jdk \
   && rm -rf /var/lib/apt/lists/*
 
-# Node 基础
+# 安装 Node 18（必须）
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+  && apt-get install -y nodejs
+
+# 安装 Capacitor CLI
 RUN npm install -g @capacitor/cli
 
 # Android SDK
@@ -18,7 +22,6 @@ RUN mkdir -p $ANDROID_HOME && cd $ANDROID_HOME && \
   mkdir -p cmdline-tools/latest && \
   mv cmdline-tools/* cmdline-tools/latest/ || true
 
-# 不交互安装 SDK
 RUN yes | sdkmanager --licenses
 RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
