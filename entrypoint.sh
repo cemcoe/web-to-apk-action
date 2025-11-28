@@ -8,10 +8,7 @@ APP_ID="${INPUT_APP_ID}"
 BUILD_COMMAND="${INPUT_BUILD_COMMAND}"
 WEB_DIR="${INPUT_WEB_DIR}"
 
-echo "📦 Installing project dependencies..."
-npm install
-
-echo "⚙️ Running web build..."
+echo "⚙️ Running user build command..."
 sh -c "$BUILD_COMMAND"
 
 echo "📁 Creating Capacitor wrapper..."
@@ -19,6 +16,9 @@ npm init -y
 npm install @capacitor/core @capacitor/android
 
 npx cap init "$APP_NAME" "$APP_ID" --web-dir="$WEB_DIR"
+
+echo "📱 Adding Android platform..."
+npx cap add android
 
 echo "🔗 Syncing Web assets..."
 npx cap sync
@@ -31,7 +31,6 @@ APK_PATH="app/build/outputs/apk/release/app-release.apk"
 
 echo "🎉 APK built: $APK_PATH"
 
-# 复制到 workspace 让用户使用
 cp $APK_PATH /github/workspace/app-release.apk
 
-echo "✅ Done. APK output: app-release.apk"
+echo "✅ Done. Output: app-release.apk"
