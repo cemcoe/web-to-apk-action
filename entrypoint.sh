@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-echo "🟦 Web to APK Action (Java 21) Start"
-echo "Java version:" 
+echo "🟦 Web to APK Action (Java 21 + SDK 36) Start"
+echo "Java version:"
 java -version
 
 APP_NAME="${INPUT_APP_NAME}"
@@ -27,24 +27,16 @@ npx cap sync
 
 cd android
 
-echo "🛠️ Setting compileOptions for Java 21 compatibility..."
-# patch build.gradle 的 compileOptions
-if grep -q "compileOptions" app/build.gradle; then
-  sed -i "/compileOptions {/,/}/ s/sourceCompatibility .*/sourceCompatibility = JavaVersion.VERSION_21/" app/build.gradle
-  sed -i "/compileOptions {/,/}/ s/targetCompatibility .*/targetCompatibility = JavaVersion.VERSION_21/" app/build.gradle
-else
-  cat << 'EOF' >> app/build.gradle
-
-android {
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-  }
-}
-EOF
+echo "🛠️ Updating compileSdkVersion / targetSdkVersion to 36"
+# variables.gradle 中如果有 sdk version 定义，可 patch
+if grep -q "compileSdkVersion" variables.gradle; then
+  sed -i "s/compileSdkVersion = [0-9]\\+/compileSdkVersion = 36/" variables.gradle
+fi
+if grep -q "targetSdkVersion" variables.gradle; then
+  sed -i "s/targetSdkVersion = [0-9]\\+/targetSdkVersion = 36/" variables.gradle
 fi
 
-echo "🔨 Building APK with Gradle + Java 21..."
+echo "🔨 Building APK with Gradle + Java 21 + SDK 36..."
 ./gradlew assembleRelease
 
 APK_PATH="app/build/outputs/apk/release/app-release.apk"
