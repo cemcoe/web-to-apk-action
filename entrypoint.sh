@@ -45,7 +45,7 @@ echo "🔍 Searching for generated .apk file..."
 # 查找所有 apk 文件（release 或 debug），优先 release
 cd ./app/build
 pwd
-ls -R ./
+ls ./
 APK_FILE=$(find app/build/outputs/apk -type f -name "*.apk" | grep -E "(release|debug)" | head -n 1 || true)
 
 if [ -z "$APK_FILE" ]; then
