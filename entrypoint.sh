@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🟦 Web to APK Action (Java 21 + SDK 36) Start"
+echo "🟦 Web to APK Action Start"
 echo "Java version:"
 java -version
 
@@ -27,21 +27,18 @@ npx cap sync
 
 cd android
 
-echo "🛠️ Updating compileSdkVersion / targetSdkVersion to 36"
-# variables.gradle 中如果有 sdk version 定义，可 patch
-if grep -q "compileSdkVersion" variables.gradle; then
-  sed -i "s/compileSdkVersion = [0-9]\\+/compileSdkVersion = 36/" variables.gradle
-fi
-if grep -q "targetSdkVersion" variables.gradle; then
-  sed -i "s/targetSdkVersion = [0-9]\\+/targetSdkVersion = 36/" variables.gradle
-fi
-
-echo "🔨 Building APK with Gradle + Java 21 + SDK 36..."
+echo "🔨 Building APK (assembleRelease)..."
 ./gradlew assembleRelease
 
-APK_PATH="app/build/outputs/apk/release/app-release.apk"
+echo "🔍 Searching for generated .apk file..."
+# 查找所有 apk 文件（release 或 debug），优先 release
+APK_FILE=$(find app/build/outputs/apk -type f -name "*.apk" | grep -E "(release|debug)" | head -n 1 || true)
 
-echo "🎉 APK built: $APK_PATH"
-cp $APK_PATH /github/workspace/app-release.apk
+if [ -z "$APK_FILE" ]; then
+  echo "❗ No APK file found under app/build/outputs/apk — build might produced .aab or failed silently"
+  exit 1
+fi
 
+echo "🎉 Found APK: $APK_FILE"
+cp "$APK_FILE" /github/workspace/app-release.apk
 echo "✅ Done. Output: app-release.apk"
